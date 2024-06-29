@@ -26,7 +26,8 @@ const diagram3 = "a"
 const diagram4 = "g"
 let highScore = 0
 let currentScore = 0
-let lives = 3
+let lives = 4
+let livesSprite = "heart3"
 let GAME_STATE = "menu"
 setLegend(
   [ water1, bitmap`
@@ -259,7 +260,11 @@ FFFFF`,
 
 //function to set up start menu
 
+let fishInterval
+
 function goToMenu(){
+  clearInterval(fishInterval)
+  clearText()
   GAME_STATE = "menu"
   if(highScore >= worldRecord){
     setMap(levels[2])
@@ -313,49 +318,91 @@ addText("High Score: " + highScore, {
 }
 }
 goToMenu()
-//starting game on l input
 
+//replace tile function
+function replaceTile(x,y,type){
+  clearTile(x,y)
+  addSprite(x,y,type)
+}
+
+//setting up game logic for each key
 function updateScore(){
   clearText()
   if(currentScore >> highScore){
     highScore =  currentScore
+  }
     addText("Score: " + currentScore, {
     x: 1,
     y: 1,
     color: color`2`
   })
     addText("High Score: " + highScore, {
-    x: 1,
+    x: 4,
     y: 14,
     color: color`6`
   })
-  }
 }
-
-onInput("l", () => {
-  if(GAME_STATE == "menu"){
-    GAME_STATE == "playing"
-    clearText()
-    updateScore()
-    level = 1
-    currentScore = 0
-    setMap(levels[level])
-  }
-})
-
 function logic(key, x, y){
   onInput(key, () =>{
-    if(getFirst(fish).x == x && getFirst(fish).y == y){
-      currentScore += 1
-      updateScore()
-    } else if(getFirst(rareFish).x == x && getFirst(fish).y == y){
-      currentScore += 5
-      updateScore()
-    } else {
-      lives -= 1
-      if(lives == 1){
-        goToMenu()
+    if(GAME_STATE == "playing"){
+      if(getAll(fish).x == x && getAll(fish).y == y){
+        currentScore += 1
+        updateScore()
+      } else if(getAll(rareFish).x == x && getAlll(fish).y == y){
+        currentScore += 5
+        updateScore()
+      } else {
+        lives -= 1
+        if(lives == 2){
+          livesSprite = "2"
+        }else if (lives == 1){
+          livesSprite = "1"
+        }
+        replaceTile(0,4,livesSprite)
+        if(lives == 0){
+          goToMenu()
+        }
       }
     }
   })
 }
+
+//starting the game (yay)
+
+function placeFish() {
+  let holes = getAll(hole)
+  let randomIndex = Math.floor(Math.random() * holes.length);
+  let randomTile = holes[randomIndex];
+  let rareFishChance = Math.random() < 0.1
+  replaceTile(randomTile.x, randomTile.y, rareFishChance ? rareFish : fish)
+  setTimeout(() => {
+      replaceTile(randomTile.x, randomTile.y, hole);
+    }, 1500);
+}
+
+//starting game on l input
+
+
+onInput("l", () => {
+  if(GAME_STATE == "menu"){
+    GAME_STATE = "playing"
+    clearText()
+    updateScore()
+    level = 1
+    currentScore = 0
+    lives = 3
+    setMap(levels[level])
+    fishInterval = setInterval(placeFish, 2000)
+  }
+})
+
+//using game logic function
+
+logic("a",1,2)
+logic("w",2,1)
+logic("s",2,3)
+logic("d",3,2)
+logic("j",2,2)
+logic("i",3,1)
+logic("k",3,3)
+logic("l",4,2)
