@@ -5,18 +5,28 @@
 @addedOn: 2024-6-28
 */
 
+//My High Score: --
+let worldRecord = 5
+//Above score set by: @--
+//message me in the sprig slack channel if you beat a high score @Ben Park
+//the world record will probably not be updated in GitHub unless it is really big
+
 //define constants and variables
-const water1 = "1"
-const water2 = "2"
+const water1 = "w"
+const water2 = "W"
 const hole = "h"
 const fish = "f"
 const rareFish = "F"
+const heart1 = "1"
+const heart2 = "2"
+const heart3 = "3"
 const diagram1 = "d"
 const diagram2 = "i"
 const diagram3 = "a"
 const diagram4 = "g"
 let highScore = 0
 let currentScore = 0
+let lives = 3
 let GAME_STATE = "menu"
 setLegend(
   [ water1, bitmap`
@@ -69,6 +79,91 @@ setLegend(
 5575577755555555
 5557555557777755
 5555777777555555
+5555555555555555`],
+  [ fish, bitmap`
+5555555555555555
+5555555755555555
+5555557557111555
+5557757571101155
+557577221L111155
+5577722111L11155
+5577721111177555
+5571111121757555
+5752177277775555
+5755771777575555
+5757771755777555
+5557757755777555
+5555555557775555
+5555555555555555
+5555555555555555
+5555555555555555`],
+  [ rareFish, bitmap`
+5555555555555555
+5555555755555555
+5555557557666555
+5557757576606655
+557577226F666655
+5577722666F66655
+5577726666677555
+5526666626757555
+5752667277775555
+5755266777575555
+5757776755777555
+5557757755777555
+5555555557775555
+5555555555555555
+5555555555555555
+5555555555555555`],
+  [ heart1, bitmap`
+5555555555555555
+5555555555777777
+5555555557555555
+5535355555555555
+5333335555555555
+5533355555555555
+5553555555555555
+5555555555555555
+5555555555555555
+5555555555555555
+5555555555555555
+5555555555555555
+5777775555555555
+5755557555555555
+5555555555555555
+5555555555555555`],
+  [ heart2, bitmap`
+5555555555555555
+5555555555777777
+5555555557555555
+5535355555555555
+5333335555555555
+5533355555555555
+5553555555555555
+5555553535555555
+5555533333555555
+5555553335555555
+5555555355555555
+5555555555555555
+5777775555555555
+5755557555555555
+5555555555555555
+5555555555555555`],
+  [ heart3, bitmap`
+5555555555555555
+5555555555777777
+5555555557555555
+5535355555535355
+5333335555333335
+5533355555533355
+5553555555553555
+5555553535555555
+5555533333555555
+5555553335555555
+5555555355555555
+5555555555555555
+5777775555555555
+5755557555555555
+5555555555555555
 5555555555555555`],
   [ diagram1, bitmap`
 ................
@@ -150,23 +245,57 @@ const levels = [
 ..ag..
 ......`,
   map`
-121212
-21hh21
-1hhhh2
-21hh21
-121212`
+wWwWwW
+WwhhWw
+whhhhW
+WwhhWw
+3WwWwW`,
+  map`
+FFFFF
+.....
+.....
+FFFFF`,
 ]
 
 //function to set up start menu
 
 function goToMenu(){
+  GAME_STATE = "menu"
+  if(highScore >= worldRecord){
+    setMap(levels[2])
+    addText("New World Record!!", {
+      x: 1,
+      y: 4,
+      color: color`3`
+    })
+    addText("Message Me in #Sprig", {
+      x: 0,
+      y: 6,
+      color: color`3`
+    })
+    addText("Have pic evidence", {
+      x: 2,
+      y: 10,
+      color: color`3`
+    })
+    addText("@Ben Park", {
+      x: 5,
+      y: 8,
+      color: color`6`
+    })
+    addText("'l' to restart", {
+      x: 3,
+      y: 11,
+      color: color`0`
+    })
+  } else{
 setMap(levels[0])
 addText("Slap-a-Fish", {
   x: 5,
   y: 2,
   color: color`5`
 })
-addText("controls:", {
+addText("Controls:", {
   x: 1,
   y: 3,
   color: color`0`
@@ -182,20 +311,51 @@ addText("High Score: " + highScore, {
   color: color`0`
 })
 }
+}
 goToMenu()
 //starting game on l input
 
+function updateScore(){
+  clearText()
+  if(currentScore >> highScore){
+    highScore =  currentScore
+    addText("Score: " + currentScore, {
+    x: 1,
+    y: 1,
+    color: color`2`
+  })
+    addText("High Score: " + highScore, {
+    x: 1,
+    y: 14,
+    color: color`6`
+  })
+  }
+}
+
 onInput("l", () => {
-  console.log("l was pressed")
   if(GAME_STATE == "menu"){
     GAME_STATE == "playing"
     clearText()
-    let level = 1
+    updateScore()
+    level = 1
+    currentScore = 0
     setMap(levels[level])
-    addText("Score: " + currentScore, {
-      x: 6,
-      y: 1,
-      color: color`2`
-    })
-    }
+  }
 })
+
+function logic(key, x, y){
+  onInput(key, () =>{
+    if(getFirst(fish).x == x && getFirst(fish).y == y){
+      currentScore += 1
+      updateScore()
+    } else if(getFirst(rareFish).x == x && getFirst(fish).y == y){
+      currentScore += 5
+      updateScore()
+    } else {
+      lives -= 1
+      if(lives == 1){
+        goToMenu()
+      }
+    }
+  })
+}
