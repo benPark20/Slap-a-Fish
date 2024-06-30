@@ -6,7 +6,7 @@
 */
 
 //My High Score: --
-let worldRecord = 5
+let worldRecord = 1
 //Above score set by: @--
 //message me in the sprig slack channel if you beat a high score @Ben Park
 //the world record will probably not be updated in GitHub unless it is really big
@@ -26,9 +26,10 @@ const diagram3 = "a"
 const diagram4 = "g"
 let highScore = 0
 let currentScore = 0
-let lives = 4
-let livesSprite = "heart3"
+let lives = 3
+let livesSprite = "3"
 let GAME_STATE = "menu"
+let fishInterval
 setLegend(
   [ water1, bitmap`
 5555555555555555
@@ -260,13 +261,13 @@ FFFFF`,
 
 //function to set up start menu
 
-let fishInterval
-
 function goToMenu(){
   clearInterval(fishInterval)
   clearText()
-  GAME_STATE = "menu"
-  if(highScore >= worldRecord){
+  currentScore = 0
+  if(GAME_STATE == "playing" && highScore >= worldRecord){
+    GAME_STATE = "world record"
+    let worldRecord = highScore
     setMap(levels[2])
     addText("New World Record!!", {
       x: 1,
@@ -288,12 +289,13 @@ function goToMenu(){
       y: 8,
       color: color`6`
     })
-    addText("'l' to restart", {
+    addText("'l' to continue", {
       x: 3,
       y: 11,
       color: color`0`
     })
   } else{
+GAME_STATE = "menu"
 setMap(levels[0])
 addText("Slap-a-Fish", {
   x: 5,
@@ -317,6 +319,7 @@ addText("High Score: " + highScore, {
 })
 }
 }
+
 goToMenu()
 
 //replace tile function
@@ -328,38 +331,40 @@ function replaceTile(x,y,type){
 //setting up game logic for each key
 function updateScore(){
   clearText()
-  if(currentScore >> highScore){
+  if(currentScore > highScore){
     highScore =  currentScore
   }
-    addText("Score: " + currentScore, {
+  addText("Score: " + currentScore, {
     x: 1,
     y: 1,
     color: color`2`
   })
-    addText("High Score: " + highScore, {
+  addText("High Score: " + highScore, {
     x: 4,
     y: 14,
     color: color`6`
   })
 }
+
 function logic(key, x, y){
-  onInput(key, () =>{
+  onInput(key, () => {
     if(GAME_STATE == "playing"){
-      if(getAll(fish).x == x && getAll(fish).y == y){
-        currentScore += 1
+      let fishAtTile = getTile(x, y).filter(sprite => sprite.type === fish || sprite.type === rareFish)
+      if(fishAtTile.length > 0){
+        currentScore += fishAtTile[0].type === fish ? 1 : 5
         updateScore()
-      } else if(getAll(rareFish).x == x && getAlll(fish).y == y){
-        currentScore += 5
-        updateScore()
+        replaceTile(x, y, hole)
       } else {
         lives -= 1
         if(lives == 2){
+          livesSprite = "3"
+        } else if (lives == 1){
           livesSprite = "2"
-        }else if (lives == 1){
+        } else if (lives == 0) {
           livesSprite = "1"
         }
-        replaceTile(0,4,livesSprite)
-        if(lives == 0){
+        replaceTile(0, 4, livesSprite)
+        if(lives < 0){
           goToMenu()
         }
       }
@@ -370,19 +375,23 @@ function logic(key, x, y){
 //starting the game (yay)
 
 function placeFish() {
-  let holes = getAll(hole)
-  let randomIndex = Math.floor(Math.random() * holes.length);
-  let randomTile = holes[randomIndex];
-  let rareFishChance = Math.random() < 0.1
-  replaceTile(randomTile.x, randomTile.y, rareFishChance ? rareFish : fish)
-  setTimeout(() => {
-      replaceTile(randomTile.x, randomTile.y, hole);
-    }, 1500);
+  if (GAME_STATE === "playing") {
+    let holes = getAll(hole)
+    if (holes.length > 0) {
+      let randomIndex = Math.floor(Math.random() * holes.length);
+      let randomTile = holes[randomIndex];
+      let rareFishChance = Math.random() < 0.1
+      replaceTile(randomTile.x, randomTile.y, rareFishChance ? rareFish : fish)
+      setTimeout(() => {
+        if (GAME_STATE === "playing") {
+          replaceTile(randomTile.x, randomTile.y, hole);
+        }
+      }, 1500);
+    }
+  }
 }
 
 //starting game on l input
-
-
 onInput("l", () => {
   if(GAME_STATE == "menu"){
     GAME_STATE = "playing"
@@ -391,8 +400,12 @@ onInput("l", () => {
     level = 1
     currentScore = 0
     lives = 3
+    livesSprite = "3"
     setMap(levels[level])
+    replaceTile(0, 4, livesSprite)
     fishInterval = setInterval(placeFish, 2000)
+  } else if (GAME_STATE == "world record"){
+    goToMenu()
   }
 })
 
