@@ -6,7 +6,7 @@
 */
 
 //My High Score: --
-let worldRecord = 1
+let worldRecord = 49
 //Above score set by: @--
 //message me in the sprig slack channel if you beat a high score @Ben Park
 //the world record will probably not be updated in GitHub unless it is really big
@@ -24,6 +24,79 @@ const diagram1 = "d"
 const diagram2 = "i"
 const diagram3 = "a"
 const diagram4 = "g"
+const backtrack = tune`
+2000: C4~2000 + E4~2000 + G4~2000 + C5~2000,
+2000: C5~2000 + G4~2000 + E4~2000 + C4~2000,
+2000: E4~2000 + C4~2000 + A4~2000,
+2000: C4~2000 + A4~2000 + E4~2000,
+2000: F4~2000 + D4~2000,
+2000,
+2000: G4~2000 + D4~2000,
+2000: G4~2000 + D4~2000,
+2000: C5~2000 + G4~2000 + E4~2000 + C4~2000,
+2000: C5~2000 + G4~2000 + E4~2000 + C4~2000,
+2000: A4~2000 + E4~2000 + C4~2000,
+2000: A4~2000 + E4~2000 + C4~2000,
+2000: F4~2000 + D4~2000,
+2000: F4~2000 + D4~2000,
+2000: G4~2000 + D4~2000,
+2000: G4~2000 + D4~2000,
+2000: C4~2000 + E4~2000 + G4~2000 + C5~2000,
+2000: C4~2000 + E4~2000 + G4~2000 + C5~2000,
+2000: C4~2000 + E4~2000 + A4~2000,
+2000: C4~2000 + E4~2000 + A4~2000,
+2000: D4~2000 + F4~2000,
+2000: D4~2000 + F4~2000,
+2000: D4~2000 + G4~2000,
+2000: D4~2000 + G4~2000,
+2000: G4~2000 + E4~2000 + C4~2000 + C5~2000,
+2000: G4~2000 + E4~2000 + C4~2000 + C5~2000,
+2000: E4~2000 + C4~2000 + A4~2000,
+2000: E4~2000 + C4~2000 + A4~2000,
+2000: F4~2000 + D4~2000,
+2000: F4~2000 + D4~2000,
+2000: D4~2000 + G4~2000,
+2000: D4~2000 + G4~2000`
+const melody = tune`
+500: C5-500 + C4~500 + E4~500,
+500: B4-500,
+500: C5-500,
+500: A4-500,
+500: F4-500,
+500: D4-500,
+500: C4-500,
+500: C4~500 + E4~500,
+500: D4-500,
+500: E4-500,
+500: F4-500,
+500: C4~500 + E4~500,
+500: F4-500,
+500: D4-500,
+500: C4-500,
+500: C5-500 + C4~500 + E4~500,
+500,
+500: C5-500,
+500: D5-500,
+500: C5-500,
+500: B4-500,
+500: C5-500,
+500: D5-500,
+500: C5-500,
+500: B4-500,
+500: D5-500,
+500: C5-500,
+500: A4-500,
+500: F4-500,
+500: D4-500,
+500: E4-500,
+500: C4-500`
+const slap = tune`
+46.012269938650306: C5/46.012269938650306 + B4/46.012269938650306 + D5/46.012269938650306 + A5/46.012269938650306 + C4/46.012269938650306,
+1426.3803680981596`
+const die = tune`
+16000`
+const newHigh = tune``
+const newRecord = tune``
 let highScore = 0
 let currentScore = 0
 let lives = 3
@@ -32,7 +105,7 @@ let GAME_STATE = "menu"
 let fishInterval
 let fishAppearanceTime
 setLegend(
-  [ water1, bitmap`
+  [water1, bitmap`
 5555555555555555
 5555555555555555
 5555557555555555
@@ -49,7 +122,7 @@ setLegend(
 5555555555555555
 5555555555555555
 5555555555555555`],
-  [ water2, bitmap`
+  [water2, bitmap`
 5555555555555555
 5555555557777755
 5555555577555755
@@ -66,7 +139,7 @@ setLegend(
 5555555555555555
 5555555555555555
 5555555555555555`],
-  [ hole, bitmap`
+  [hole, bitmap`
 5555555555555555
 5555777557555555
 5577555555575555
@@ -83,7 +156,7 @@ setLegend(
 5557555557777755
 5555777777555555
 5555555555555555`],
-  [ fish, bitmap`
+  [fish, bitmap`
 5555555555555555
 5555555755555555
 5555557557111555
@@ -100,7 +173,7 @@ setLegend(
 5555555555555555
 5555555555555555
 5555555555555555`],
-  [ rareFish, bitmap`
+  [rareFish, bitmap`
 5555555555555555
 5555555755555555
 5555557557666555
@@ -117,7 +190,7 @@ setLegend(
 5555555555555555
 5555555555555555
 5555555555555555`],
-  [ heart1, bitmap`
+  [heart1, bitmap`
 5555555555555555
 5555555555777777
 5555555557555555
@@ -134,7 +207,7 @@ setLegend(
 5755557555555555
 5555555555555555
 5555555555555555`],
-  [ heart2, bitmap`
+  [heart2, bitmap`
 5555555555555555
 5555555555777777
 5555555557555555
@@ -151,7 +224,7 @@ setLegend(
 5755557555555555
 5555555555555555
 5555555555555555`],
-  [ heart3, bitmap`
+  [heart3, bitmap`
 5555555555555555
 5555555555777777
 5555555557555555
@@ -168,7 +241,7 @@ setLegend(
 5755557555555555
 5555555555555555
 5555555555555555`],
-  [ diagram1, bitmap`
+  [diagram1, bitmap`
 ................
 ..LLLLLLLLLLLLLL
 .LL.............
@@ -185,7 +258,7 @@ setLegend(
 .LL.............
 ..LLLLLLLLLLLLLL
 ................`],
-  [ diagram2, bitmap`
+  [diagram2, bitmap`
 ................
 LLLLLLLLLLLLLL..
 .............LL.
@@ -202,7 +275,7 @@ LLLLLLLLLLLLLL..
 .............LL.
 LLLLLLLLLLLLLL..
 ................`],
-  [ diagram3, bitmap`
+  [diagram3, bitmap`
 ................
 ................
 ............3333
@@ -262,11 +335,11 @@ FFFFF`,
 
 //function to set up start menu
 
-function goToMenu(){
+function goToMenu() {
   clearInterval(fishInterval)
   clearText()
   currentScore = 0
-  if(GAME_STATE == "playing" && highScore > worldRecord){
+  if (GAME_STATE == "playing" && highScore > worldRecord) {
     GAME_STATE = "world record"
     worldRecord = highScore
     setMap(levels[2])
@@ -295,45 +368,45 @@ function goToMenu(){
       y: 11,
       color: color`0`
     })
-  } else{
-GAME_STATE = "menu"
-setMap(levels[0])
-addText("Slap-a-Fish", {
-  x: 5,
-  y: 2,
-  color: color`5`
-})
-addText("Controls:", {
-  x: 1,
-  y: 3,
-  color: color`0`
-})
-addText("Press 'l' to start", {
-  x: 1,
-  y: 13,
-  color: color`1`
-})
-addText("High Score: " + highScore, {
-  x: 1,
-  y: 12,
-  color: color`0`
-})
-}
+  } else {
+    GAME_STATE = "menu"
+    setMap(levels[0])
+    addText("Slap-a-Fish", {
+      x: 5,
+      y: 2,
+      color: color`5`
+    })
+    addText("Controls:", {
+      x: 1,
+      y: 3,
+      color: color`0`
+    })
+    addText("Press 'l' to start", {
+      x: 1,
+      y: 13,
+      color: color`1`
+    })
+    addText("High Score: " + highScore, {
+      x: 1,
+      y: 12,
+      color: color`0`
+    })
+  }
 }
 
 goToMenu()
 
 //replace tile function
-function replaceTile(x,y,type){
-  clearTile(x,y)
-  addSprite(x,y,type)
+function replaceTile(x, y, type) {
+  clearTile(x, y)
+  addSprite(x, y, type)
 }
 
 //setting up game logic for each key
-function updateScore(){
+function updateScore() {
   clearText()
-  if(currentScore > highScore){
-    highScore =  currentScore
+  if (currentScore > highScore) {
+    highScore = currentScore
   }
   addText("Score: " + currentScore, {
     x: 1,
@@ -347,17 +420,18 @@ function updateScore(){
   })
 }
 
-function logic(key, x, y){
+function logic(key, x, y) {
   onInput(key, () => {
-    if(GAME_STATE == "playing"){
+    if (GAME_STATE == "playing") {
       let fishAtTile = getTile(x, y).filter(sprite => sprite.type === fish || sprite.type === rareFish)
-      if(fishAtTile.length > 0){
+      if (fishAtTile.length > 0) {
+        playTune(slap, 1)
         let timeDiff = Date.now() - fishAppearanceTime
         let points
-        points = 1500 - timeDiff
-        points /= 300
+        points = 750 - timeDiff
+        points /= 100
         points = Math.max(0, Math.round(points))
-        if(fishAtTile[0].type === rareFish){
+        if (fishAtTile[0].type === rareFish) {
           points *= 3
         }
         currentScore += points
@@ -365,15 +439,15 @@ function logic(key, x, y){
         replaceTile(x, y, hole)
       } else {
         lives -= 1
-        if(lives == 2){
+        if (lives == 2) {
           livesSprite = "3"
-        } else if (lives == 1){
+        } else if (lives == 1) {
           livesSprite = "2"
-        } else if (lives == 0){
+        } else if (lives == 0) {
           livesSprite = "1"
         }
         replaceTile(0, 4, livesSprite)
-        if(lives < 0){
+        if (lives < 0) {
           goToMenu()
         }
       }
@@ -381,7 +455,7 @@ function logic(key, x, y){
   })
 }
 
-
+playTune(melody, Infinity)
 //starting the game (yay)
 
 function placeFish() {
@@ -397,14 +471,14 @@ function placeFish() {
         if (GAME_STATE === "playing") {
           replaceTile(randomTile.x, randomTile.y, hole)
         }
-      }, 1500)
+      }, 750)
     }
   }
 }
 
 //starting game on l input
 onInput("l", () => {
-  if(GAME_STATE == "menu"){
+  if (GAME_STATE == "menu") {
     GAME_STATE = "playing"
     clearText()
     updateScore()
@@ -414,8 +488,8 @@ onInput("l", () => {
     livesSprite = "3"
     setMap(levels[level])
     replaceTile(0, 4, livesSprite)
-    fishInterval = setInterval(placeFish, 2000)
-  } else if (GAME_STATE == "world record"){
+    fishInterval = setInterval(placeFish, 1500)
+  } else if (GAME_STATE == "world record") {
     goToMenu()
     worldRecord = highScore
   }
@@ -423,11 +497,11 @@ onInput("l", () => {
 
 //using game logic function
 
-logic("a",1,2)
-logic("w",2,1)
-logic("s",2,3)
-logic("d",3,2)
-logic("j",2,2)
-logic("i",3,1)
-logic("k",3,3)
-logic("l",4,2)
+logic("a", 1, 2)
+logic("w", 2, 1)
+logic("s", 2, 3)
+logic("d", 3, 2)
+logic("j", 2, 2)
+logic("i", 3, 1)
+logic("k", 3, 3)
+logic("l", 4, 2)
