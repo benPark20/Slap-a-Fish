@@ -30,6 +30,7 @@ let lives = 3
 let livesSprite = "3"
 let GAME_STATE = "menu"
 let fishInterval
+let fishAppearanceTime
 setLegend(
   [ water1, bitmap`
 5555555555555555
@@ -265,9 +266,9 @@ function goToMenu(){
   clearInterval(fishInterval)
   clearText()
   currentScore = 0
-  if(GAME_STATE == "playing" && highScore >= worldRecord){
+  if(GAME_STATE == "playing" && highScore > worldRecord){
     GAME_STATE = "world record"
-    let worldRecord = highScore
+    worldRecord = highScore
     setMap(levels[2])
     addText("New World Record!!", {
       x: 1,
@@ -351,7 +352,15 @@ function logic(key, x, y){
     if(GAME_STATE == "playing"){
       let fishAtTile = getTile(x, y).filter(sprite => sprite.type === fish || sprite.type === rareFish)
       if(fishAtTile.length > 0){
-        currentScore += fishAtTile[0].type === fish ? 1 : 5
+        let timeDiff = Date.now() - fishAppearanceTime
+        let points
+        points = 1500 - timeDiff
+        points /= 300
+        points = Math.max(0, Math.round(points))
+        if(fishAtTile[0].type === rareFish){
+          points *= 3
+        }
+        currentScore += points
         updateScore()
         replaceTile(x, y, hole)
       } else {
@@ -360,7 +369,7 @@ function logic(key, x, y){
           livesSprite = "3"
         } else if (lives == 1){
           livesSprite = "2"
-        } else if (lives == 0) {
+        } else if (lives == 0){
           livesSprite = "1"
         }
         replaceTile(0, 4, livesSprite)
@@ -372,21 +381,23 @@ function logic(key, x, y){
   })
 }
 
+
 //starting the game (yay)
 
 function placeFish() {
   if (GAME_STATE === "playing") {
     let holes = getAll(hole)
     if (holes.length > 0) {
-      let randomIndex = Math.floor(Math.random() * holes.length);
+      let randomIndex = Math.floor(Math.random() * holes.length)
       let randomTile = holes[randomIndex];
-      let rareFishChance = Math.random() < 0.1
+      let rareFishChance = Math.random() < 0.075
       replaceTile(randomTile.x, randomTile.y, rareFishChance ? rareFish : fish)
+      fishAppearanceTime = Date.now()
       setTimeout(() => {
         if (GAME_STATE === "playing") {
-          replaceTile(randomTile.x, randomTile.y, hole);
+          replaceTile(randomTile.x, randomTile.y, hole)
         }
-      }, 1500);
+      }, 1500)
     }
   }
 }
@@ -406,6 +417,7 @@ onInput("l", () => {
     fishInterval = setInterval(placeFish, 2000)
   } else if (GAME_STATE == "world record"){
     goToMenu()
+    worldRecord = highScore
   }
 })
 
