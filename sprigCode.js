@@ -6,7 +6,7 @@
 */
 
 //My High Score: --
-let worldRecord = 49
+let worldRecord = 81
 //Above score set by: @--
 //message me in the sprig slack channel if you beat a high score @Ben Park
 //the world record will probably not be updated in GitHub unless it is really big
@@ -24,39 +24,6 @@ const diagram1 = "d"
 const diagram2 = "i"
 const diagram3 = "a"
 const diagram4 = "g"
-const backtrack = tune`
-2000: C4~2000 + E4~2000 + G4~2000 + C5~2000,
-2000: C5~2000 + G4~2000 + E4~2000 + C4~2000,
-2000: E4~2000 + C4~2000 + A4~2000,
-2000: C4~2000 + A4~2000 + E4~2000,
-2000: F4~2000 + D4~2000,
-2000,
-2000: G4~2000 + D4~2000,
-2000: G4~2000 + D4~2000,
-2000: C5~2000 + G4~2000 + E4~2000 + C4~2000,
-2000: C5~2000 + G4~2000 + E4~2000 + C4~2000,
-2000: A4~2000 + E4~2000 + C4~2000,
-2000: A4~2000 + E4~2000 + C4~2000,
-2000: F4~2000 + D4~2000,
-2000: F4~2000 + D4~2000,
-2000: G4~2000 + D4~2000,
-2000: G4~2000 + D4~2000,
-2000: C4~2000 + E4~2000 + G4~2000 + C5~2000,
-2000: C4~2000 + E4~2000 + G4~2000 + C5~2000,
-2000: C4~2000 + E4~2000 + A4~2000,
-2000: C4~2000 + E4~2000 + A4~2000,
-2000: D4~2000 + F4~2000,
-2000: D4~2000 + F4~2000,
-2000: D4~2000 + G4~2000,
-2000: D4~2000 + G4~2000,
-2000: G4~2000 + E4~2000 + C4~2000 + C5~2000,
-2000: G4~2000 + E4~2000 + C4~2000 + C5~2000,
-2000: E4~2000 + C4~2000 + A4~2000,
-2000: E4~2000 + C4~2000 + A4~2000,
-2000: F4~2000 + D4~2000,
-2000: F4~2000 + D4~2000,
-2000: D4~2000 + G4~2000,
-2000: D4~2000 + G4~2000`
 const melody = tune`
 500: C5-500 + C4~500 + E4~500,
 500: B4-500,
@@ -90,18 +57,48 @@ const melody = tune`
 500: D4-500,
 500: E4-500,
 500: C4-500`
+let backgroundMusic
 const slap = tune`
 46.012269938650306: C5/46.012269938650306 + B4/46.012269938650306 + D5/46.012269938650306 + A5/46.012269938650306 + C4/46.012269938650306,
 1426.3803680981596`
 const die = tune`
-16000`
-const newHigh = tune``
-const newRecord = tune``
+109.0909090909091: E5/109.0909090909091 + A4/109.0909090909091 + G5-109.0909090909091 + C4~109.0909090909091,
+109.0909090909091: C5/109.0909090909091 + G4/109.0909090909091 + E5-109.0909090909091 + C4~109.0909090909091,
+109.0909090909091: B4/109.0909090909091 + F4/109.0909090909091 + D5-109.0909090909091 + C4~109.0909090909091,
+109.0909090909091: C4/109.0909090909091 + G4/109.0909090909091,
+3054.5454545454545`
+const newHigh = tune`
+872.7272727272727,
+109.0909090909091: D4^109.0909090909091 + F4~109.0909090909091 + A4-109.0909090909091 + E5-109.0909090909091 + C5/109.0909090909091,
+109.0909090909091: E4^109.0909090909091 + G4~109.0909090909091 + B4-109.0909090909091 + F5-109.0909090909091 + D5/109.0909090909091,
+109.0909090909091: A4^109.0909090909091 + C5~109.0909090909091 + E5-109.0909090909091 + B5-109.0909090909091 + G5/109.0909090909091,
+109.0909090909091: D5-109.0909090909091,
+109.0909090909091: C5-109.0909090909091,
+109.0909090909091: D5-109.0909090909091,
+1963.6363636363637`
+const newRecord = tune`
+937.5,
+312.5: A4/312.5 + C5/312.5,
+312.5: A4/312.5 + C5/312.5,
+312.5: E5/312.5 + G5/312.5,
+312.5,
+312.5: F5/312.5,
+312.5: E5/312.5,
+312.5: F5/312.5,
+312.5: G5/312.5,
+312.5,
+312.5: E5/312.5 + B5/312.5,
+312.5,
+312.5: G5/312.5 + E5/312.5 + C5/312.5 + E4/312.5 + C4/312.5,
+312.5,
+312.5: C4~312.5,
+4687.5`
 let highScore = 0
 let currentScore = 0
 let lives = 3
 let livesSprite = "3"
 let GAME_STATE = "menu"
+let HIGH_STATE = "regular"
 let fishInterval
 let fishAppearanceTime
 setLegend(
@@ -339,9 +336,13 @@ function goToMenu() {
   clearInterval(fishInterval)
   clearText()
   currentScore = 0
+  if (backgroundMusic) {
+    backgroundMusic.end()
+  }
   if (GAME_STATE == "playing" && highScore > worldRecord) {
     GAME_STATE = "world record"
     worldRecord = highScore
+    playTune(newRecord, 1)
     setMap(levels[2])
     addText("New World Record!!", {
       x: 1,
@@ -391,6 +392,10 @@ function goToMenu() {
       y: 12,
       color: color`0`
     })
+    if (HIGH_STATE == "newHigh"){
+      playTune(newHigh, 1)
+      HIGH_STATE = "regular"
+    }
   }
 }
 
@@ -407,6 +412,7 @@ function updateScore() {
   clearText()
   if (currentScore > highScore) {
     highScore = currentScore
+    HIGH_STATE = "newHigh"
   }
   addText("Score: " + currentScore, {
     x: 1,
@@ -448,6 +454,7 @@ function logic(key, x, y) {
         }
         replaceTile(0, 4, livesSprite)
         if (lives < 0) {
+          playTune(die, 1)
           goToMenu()
         }
       }
@@ -455,7 +462,6 @@ function logic(key, x, y) {
   })
 }
 
-playTune(melody, Infinity)
 //starting the game (yay)
 
 function placeFish() {
@@ -489,6 +495,7 @@ onInput("l", () => {
     setMap(levels[level])
     replaceTile(0, 4, livesSprite)
     fishInterval = setInterval(placeFish, 1500)
+    backgroundMusic = playTune(melody, Infinity)
   } else if (GAME_STATE == "world record") {
     goToMenu()
     worldRecord = highScore
